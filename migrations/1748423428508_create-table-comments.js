@@ -22,7 +22,7 @@ export const up = (pgm) => {
       notNull: true,
     },
     created_at: {
-      type: 'TIMESTAMPZ',
+      type: 'TIMESTAMPTZ',
       notNull: true,
       default: pgm.func('CURRENT_TIMESTAMP'),
     },
