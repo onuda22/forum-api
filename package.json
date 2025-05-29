@@ -10,7 +10,7 @@
     "test:watch:change": "jest --watch --setupFiles dotenv/config -i",
     "test:watch": "jest --watchAll --coverage --setupFiles dotenv/config -i",
     "migrate": "node-pg-migrate",
-    "migrate:test": "node-pg-migrate -f config/database/test.json"
+    "migrate:test": "node-pg-migrate --envPath .test.env"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +21,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^16.5.0",
     "instances-container": "^2.0.6",
-    "nanoid": "^5.1.5",
+    "nanoid": "^3.3.11",
     "pg": "^8.16.0"
   },
   "devDependencies": {
