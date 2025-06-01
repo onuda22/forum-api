@@ -6,16 +6,16 @@ const AddedThread = require('../../../Domains/thread/entities/AddedThread');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 
 describe('ThreadRepositoryPostgres', () => {
-  beforeAll(async () => {
-    await UsersTableTestHelper.addUser({});
+  beforeEach(async () => {
+    await UsersTableTestHelper.addUser({ id: 'user-123' });
   });
 
   afterEach(async () => {
     await ThreadsTableTestHelper.cleanTable();
+    await UsersTableTestHelper.cleanTable();
   });
 
   afterAll(async () => {
-    await UsersTableTestHelper.cleanTable();
     await pool.end();
   });
 
@@ -69,6 +69,34 @@ describe('ThreadRepositoryPostgres', () => {
           owner: 'user-123',
         })
       );
+    });
+  });
+
+  describe('verifyThreadById function', () => {
+    it('should return id of thread correctly', async () => {
+      // Arrange
+      const requestPayload = {
+        id: 'thread-123',
+      };
+
+      const fakeIdGenerator = () => '123';
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(
+        pool,
+        fakeIdGenerator
+      );
+
+      await ThreadsTableTestHelper.addThread({
+        id: requestPayload.id,
+        owner: 'user-123',
+      });
+
+      // Action
+      const threadId = await threadRepositoryPostgres.verifyThreadById(
+        requestPayload
+      );
+
+      // Assert
+      expect(threadId.id).toEqual(requestPayload.id);
     });
   });
 });
