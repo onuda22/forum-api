@@ -77,4 +77,30 @@ describe('CommentRepositoryPostgres', () => {
       );
     });
   });
+
+  describe('findCommentById function', () => {
+    it('should return the commentId and owner', async () => {
+      // Arrange
+      const payload = {
+        commentId: 'comment-123',
+      };
+
+      await CommentsTableTestHelper.addComment({
+        content: 'this is content',
+        owner: 'user-123',
+        threadId: 'thread-123',
+      });
+
+      const commentRepository = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const comment = await commentRepository.findCommentById(payload);
+
+      // Assert
+      expect(comment).toStrictEqual({
+        id: 'comment-123',
+        owner: 'user-123',
+      });
+    });
+  });
 });
