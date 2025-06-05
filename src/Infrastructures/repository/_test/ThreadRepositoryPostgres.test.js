@@ -76,7 +76,7 @@ describe('ThreadRepositoryPostgres', () => {
     it('should return id of thread correctly', async () => {
       // Arrange
       const requestPayload = {
-        id: 'thread-123',
+        threadId: 'thread-123',
       };
 
       const fakeIdGenerator = () => '123';
@@ -96,7 +96,7 @@ describe('ThreadRepositoryPostgres', () => {
       );
 
       // Assert
-      expect(threadId.id).toEqual(requestPayload.id);
+      expect(threadId.id).toEqual(requestPayload.threadId);
     });
   });
 });
