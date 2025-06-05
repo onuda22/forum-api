@@ -3,7 +3,6 @@ const Comment = require('../../../Domains/comments/entities/Comment');
 const AddedComment = require('../../../Domains/comments/entities/AddedComment');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const ThreadRepository = require('../../../Domains/thread/ThreadRepository');
-const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 
 describe('AddCommentUseCase', () => {
   /**
@@ -34,7 +33,7 @@ describe('AddCommentUseCase', () => {
     // Assert
     await expect(
       addCommentUseCase.execute(useCasePayload)
-    ).rejects.toThrowError(new NotFoundError('Thread tidak ditemukan'));
+    ).rejects.toThrowError(new Error('ADD_COMMENT_USE_CASE.THREAD_NOT_FOUND'));
   });
 
   it('should orchestrating the add comment action correctly', async () => {

@@ -1,4 +1,3 @@
-const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 const Comment = require('../../Domains/comments/entities/Comment');
 
 class AddCommentUseCase {
@@ -8,13 +7,12 @@ class AddCommentUseCase {
   }
 
   async execute(useCasePayload) {
-    const threadId = {
-      id: useCasePayload.threadId,
-    };
-    const thread = await this._threadRepository.verifyThreadById(threadId);
+    const thread = await this._threadRepository.verifyThreadById(
+      useCasePayload
+    );
 
     if (!thread) {
-      throw new NotFoundError('Thread tidak ditemukan');
+      throw new Error('ADD_COMMENT_USE_CASE.THREAD_NOT_FOUND');
     }
 
     const createComment = new Comment(useCasePayload);
