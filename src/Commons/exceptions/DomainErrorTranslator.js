@@ -1,4 +1,6 @@
 const InvariantError = require('./InvariantError');
+const NotFoundError = require('./NotFoundError');
+const AuthorizationError = require('./AuthorizationError');
 
 const DomainErrorTranslator = {
   translate(error) {
@@ -44,6 +46,18 @@ DomainErrorTranslator._directories = {
   ),
   'COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION': new InvariantError(
     'tidak dapat membuat komentar baru karena tipe data tidak sesuai'
+  ),
+  'ADD_COMMENT_USE_CASE.THREAD_NOT_FOUND': new NotFoundError(
+    'Tidak dapat membuat komentar, thread tidak ada (threadId tidak valid)'
+  ),
+  'DELETE_COMMENT_USE_CASE.FORBIDDEN_AUTHORIZATION': new AuthorizationError(
+    'tidak dapat menghapus komentar, anda tidak berhak menghapus komentar ini'
+  ),
+  'DELETE_COMMENT_USE_CASE.COMMENT_NOT_FOUND': new NotFoundError(
+    'komentar yang hendak dihapus tidak ada, commentId tidak valid'
+  ),
+  'DELETE_COMMENT_USE_CASE.THREAD_NOT_FOUND': new NotFoundError(
+    'komentar yang hendak dihapus tidak ada, threadId tidak valid'
   ),
 };
 
