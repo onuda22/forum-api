@@ -32,6 +32,16 @@ class CommentRepositoryPostgres extends CommentRepository {
     const result = await this._pool.query(query);
     return result.rows[0];
   }
+
+  async deleteCommentById(payload) {
+    const { commentId } = payload;
+    const query = {
+      text: 'UPDATE comments SET is_deleted = $1 WHERE id = $2',
+      values: [true, commentId],
+    };
+
+    await this._pool.query(query);
+  }
 }
 
 module.exports = CommentRepositoryPostgres;

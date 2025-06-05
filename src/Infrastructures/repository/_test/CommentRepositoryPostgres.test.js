@@ -5,6 +5,7 @@ const pool = require('../../database/postgres/pool');
 const Comment = require('../../../Domains/comments/entities/Comment');
 const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
 const AddedComment = require('../../../Domains/comments/entities/AddedComment');
+const CommentTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 
 describe('CommentRepositoryPostgres', () => {
   beforeAll(async () => {
@@ -101,6 +102,34 @@ describe('CommentRepositoryPostgres', () => {
         id: 'comment-123',
         owner: 'user-123',
       });
+    });
+  });
+
+  describe('deleteCommentById function', () => {
+    it('should soft delete comment correctly, make is_delete to true', async () => {
+      // Arrange
+      const payload = {
+        commentId: 'comment-123',
+      };
+
+      await CommentTableTestHelper.addComment({
+        content: 'this is comment content',
+        owner: 'user-123',
+        threadId: 'thread-123',
+        isDeleted: false,
+      });
+
+      const commentRepository = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      commentRepository.deleteCommentById(payload);
+
+      // Assert
+      const comment = await CommentTableTestHelper.findCommentsById(
+        payload.commentId
+      );
+
+      expect(comment[0].is_deleted).toStrictEqual(true);
     });
   });
 });
