@@ -160,7 +160,7 @@ describe('/threads endpoint', () => {
         owner: 'user-123',
         threadId: 'thread-X123',
       });
-      const requestPayload = {
+      const requestParams = {
         threadId: 'thread-X123',
       };
 
@@ -169,7 +169,7 @@ describe('/threads endpoint', () => {
       // Action
       const response = await server.inject({
         method: 'GET',
-        url: `/threads/${requestPayload.threadId}`,
+        url: `/threads/${requestParams.threadId}`,
       });
 
       // Assert
@@ -178,15 +178,32 @@ describe('/threads endpoint', () => {
       expect(responseJson.status).toEqual('success');
       expect(responseJson.data.thread).toBeDefined();
       expect(responseJson.data.thread.comments).toBeDefined();
-      expect(responseJson.data.thread.id).toEqual(requestPayload.threadId);
+      expect(responseJson.data.thread.id).toEqual(requestParams.threadId);
       expect(responseJson.data.thread.comments).toBeInstanceOf(Array);
       expect(responseJson.data.thread.comments[0].content).toEqual(
         '**komentar telah dihapus**'
       );
     });
-    // it('should response 404 when threadId invalid', async () => {
-    //   // Arrange
-    //   const
-    // })
+    it('should response 404 when threadId invalid', async () => {
+      // Arrange
+      const requestParams = {
+        threadId: 'thread-invalid',
+      };
+      const server = await createServer(container);
+
+      // Action
+      const response = await server.inject({
+        method: 'GET',
+        url: `/threads/${requestParams.threadId}`,
+      });
+
+      // Assert
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(404);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual(
+        'thread tidak ditemukan, threadId invalid'
+      );
+    });
   });
 });
