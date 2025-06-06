@@ -12,7 +12,7 @@ const CommentTableTestHelper = {
     owner = 'user-123',
     threadId = 'thread-123',
     createdAt = new Date().toISOString(),
-    isDeleted = 'false',
+    isDeleted = false,
   }) {
     const query = {
       text: 'INSERT INTO comments VALUES($1, $2, $3, $4, $5, $6)',
