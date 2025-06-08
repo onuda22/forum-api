@@ -4,6 +4,7 @@ const pool = require('../../database/postgres/pool');
 const NewThread = require('../../../Domains/thread/entities/NewThread');
 const AddedThread = require('../../../Domains/thread/entities/AddedThread');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
+const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 
 describe('ThreadRepositoryPostgres', () => {
   beforeEach(async () => {
@@ -11,6 +12,7 @@ describe('ThreadRepositoryPostgres', () => {
   });
 
   afterEach(async () => {
+    await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
   });
@@ -97,6 +99,73 @@ describe('ThreadRepositoryPostgres', () => {
 
       // Assert
       expect(threadId.id).toEqual(requestPayload.threadId);
+    });
+  });
+
+  describe('getThreadById function', () => {
+    it('should return thread correctly', async () => {
+      // Arrange
+      const requestPayload = {
+        threadId: 'thread-123',
+      };
+
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, {});
+
+      // Add User, Thread and comments
+      await ThreadsTableTestHelper.addThread({
+        id: requestPayload.threadId,
+        owner: 'user-123',
+      });
+
+      // Action
+      const thread = await threadRepositoryPostgres.getThreadById(
+        requestPayload
+      );
+
+      // Assert
+      expect(thread).toBeDefined();
+      expect(thread.id).toEqual(requestPayload.threadId);
+    });
+  });
+
+  describe('getCommentsByThreadId function', () => {
+    it('should return comments of thread correctly', async () => {
+      // Arrange
+      const requestPayload = {
+        threadId: 'thread-123',
+      };
+
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, {});
+
+      // Add User, Thread and comments
+      await UsersTableTestHelper.addUser({
+        id: 'user-test',
+        username: 'testing',
+      });
+      await UsersTableTestHelper.addUser({
+        id: 'user-comment',
+        username: 'testComment',
+      });
+      await ThreadsTableTestHelper.addThread({
+        id: requestPayload.threadId,
+        owner: 'user-test',
+      });
+      await CommentsTableTestHelper.addComment({
+        id: 'comment-123',
+        owner: 'user-comment',
+        threadId: requestPayload.threadId,
+      });
+
+      // Action
+      const comments = await threadRepositoryPostgres.getCommentsByThreadId(
+        requestPayload
+      );
+
+      // Assert
+      expect(comments).toBeDefined;
+      expect(comments).toBeInstanceOf(Array);
+      expect(comments).toHaveLength(1);
+      expect(comments[0].id).toEqual('comment-123');
     });
   });
 });

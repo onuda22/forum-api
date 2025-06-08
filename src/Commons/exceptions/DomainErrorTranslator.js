@@ -59,6 +59,9 @@ DomainErrorTranslator._directories = {
   'DELETE_COMMENT_USE_CASE.THREAD_NOT_FOUND': new NotFoundError(
     'komentar yang hendak dihapus tidak ada, threadId tidak valid'
   ),
+  'GET_DETAIL_THREAD_USE_CASE.THREAD_NOT_FOUND': new NotFoundError(
+    'thread tidak ditemukan, threadId invalid'
+  ),
 };
 
 module.exports = DomainErrorTranslator;
