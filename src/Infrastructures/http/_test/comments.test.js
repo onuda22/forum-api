@@ -168,9 +168,7 @@ describe('/comments endpoint', () => {
       const responseJson = JSON.parse(response.payload);
       expect(response.statusCode).toEqual(404);
       expect(responseJson.status).toEqual('fail');
-      expect(responseJson.message).toEqual(
-        'Tidak dapat membuat komentar, thread tidak ada (threadId tidak valid)'
-      );
+      expect(responseJson.message).toEqual('thread tidak ditemukan');
     });
   });
 
@@ -242,7 +240,7 @@ describe('/comments endpoint', () => {
       expect(response.statusCode).toEqual(403);
       expect(responseJson.status).toEqual('fail');
       expect(responseJson.message).toEqual(
-        'tidak dapat menghapus komentar, anda tidak berhak menghapus komentar ini'
+        'akses ditolak user bukan pemilik comment'
       );
     });
 
@@ -266,9 +264,7 @@ describe('/comments endpoint', () => {
       const responseJson = JSON.parse(response.payload);
       expect(response.statusCode).toEqual(404);
       expect(responseJson.status).toEqual('fail');
-      expect(responseJson.message).toEqual(
-        'komentar yang hendak dihapus tidak ada, threadId tidak valid'
-      );
+      expect(responseJson.message).toEqual('thread tidak ditemukan');
     });
 
     it('should response 404 when comment is not found or not valid', async () => {
@@ -291,9 +287,7 @@ describe('/comments endpoint', () => {
       const responseJson = JSON.parse(response.payload);
       expect(response.statusCode).toEqual(404);
       expect(responseJson.status).toEqual('fail');
-      expect(responseJson.message).toEqual(
-        'komentar yang hendak dihapus tidak ada, commentId tidak valid'
-      );
+      expect(responseJson.message).toEqual('comment tidak ditemukan');
     });
   });
 });
