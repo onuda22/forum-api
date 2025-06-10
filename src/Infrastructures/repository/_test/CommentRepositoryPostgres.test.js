@@ -5,7 +5,8 @@ const pool = require('../../database/postgres/pool');
 const Comment = require('../../../Domains/comments/entities/Comment');
 const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
 const AddedComment = require('../../../Domains/comments/entities/AddedComment');
-const CommentTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
+const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 
 describe('CommentRepositoryPostgres', () => {
   beforeAll(async () => {
@@ -112,7 +113,7 @@ describe('CommentRepositoryPostgres', () => {
         commentId: 'comment-123',
       };
 
-      await CommentTableTestHelper.addComment({
+      await CommentsTableTestHelper.addComment({
         content: 'this is comment content',
         owner: 'user-123',
         threadId: 'thread-123',
@@ -125,11 +126,90 @@ describe('CommentRepositoryPostgres', () => {
       commentRepository.deleteCommentById(payload);
 
       // Assert
-      const comment = await CommentTableTestHelper.findCommentsById(
+      const comment = await CommentsTableTestHelper.findCommentsById(
         payload.commentId
       );
 
       expect(comment[0].is_deleted).toStrictEqual(true);
+    });
+  });
+
+  describe('verifyCommentByThreadAndCommentId function', () => {
+    const commentRepository = new CommentRepositoryPostgres(pool, {});
+
+    it('should throw NotFoundError when comment was not found', async () => {
+      // Arrange
+      const payload = {
+        threadId: 'thread-123',
+        commentId: 'comment-123',
+      };
+
+      // Action and Assert
+      await expect(
+        commentRepository.verifyCommentByThreadAndCommentId(payload)
+      ).rejects.toThrowError(new NotFoundError('comment tidak ditemukan'));
+    });
+
+    it('should not throw NotFoundError when comment was exist', async () => {
+      // Arrange
+      const payload = {
+        threadId: 'thread-123',
+        commentId: 'comment-123',
+      };
+      await CommentsTableTestHelper.addComment({
+        id: payload.commentId,
+        threadId: payload.threadId,
+        owner: 'user-123',
+      });
+
+      // Action and Asser
+      await expect(
+        commentRepository.verifyCommentByThreadAndCommentId(payload)
+      ).resolves.not.toThrow(NotFoundError);
+    });
+  });
+
+  describe('verifyCommentOwner function', () => {
+    const commentRepository = new CommentRepositoryPostgres(pool, {});
+
+    it('should throw AuthorizationError when user is not the owner of comment', async () => {
+      // Arrange
+      const payload = {
+        commentId: 'comment-123',
+        owner: 'user-invalid',
+      };
+
+      await CommentsTableTestHelper.addComment({
+        id: payload.commentId,
+        owner: 'user-123',
+        threadId: 'thread-123',
+      });
+
+      // Action and Assert
+      await expect(
+        commentRepository.verifyCommentOwner(payload)
+      ).rejects.toThrowError(
+        new AuthorizationError('akses ditolak user bukan pemilik comment')
+      );
+    });
+
+    it('should not throw AuthorizationError when comment was found by userId and commentId', async () => {
+      // Arrange
+      const payload = {
+        commentId: 'comment-123',
+        owner: 'user-123',
+      };
+
+      await CommentsTableTestHelper.addComment({
+        id: payload.commentId,
+        owner: payload.owner,
+        threadId: 'thread-123',
+      });
+
+      // Action and Assert
+      await expect(
+        commentRepository.verifyCommentOwner(payload)
+      ).resolves.not.toThrow(AuthorizationError);
     });
   });
 });
