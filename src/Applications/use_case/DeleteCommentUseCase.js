@@ -16,23 +16,11 @@ class DeleteCommentUseCase {
       );
     }
 
-    const thread = await this._threadRepository.verifyThreadById(payload);
+    await this._threadRepository.verifyThreadById({ threadId });
+    await this._commentRepository.verifyCommentByThreadAndCommentId(payload);
+    await this._commentRepository.verifyCommentOwner({ commentId, owner });
 
-    if (!thread) {
-      throw new Error('DELETE_COMMENT_USE_CASE.THREAD_NOT_FOUND');
-    }
-
-    const comment = await this._commentRepository.findCommentById(payload);
-
-    if (!comment) {
-      throw new Error('DELETE_COMMENT_USE_CASE.COMMENT_NOT_FOUND');
-    }
-
-    if (comment.owner !== owner) {
-      throw new Error('DELETE_COMMENT_USE_CASE.FORBIDDEN_AUTHORIZATION');
-    }
-
-    await this._commentRepository.deleteCommentById(payload);
+    await this._commentRepository.deleteCommentById({ commentId });
   }
 }
 

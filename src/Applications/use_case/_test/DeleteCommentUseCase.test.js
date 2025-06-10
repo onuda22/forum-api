@@ -1,3 +1,4 @@
+const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const ThreadRepository = require('../../../Domains/thread/ThreadRepository');
 const DeleteCommentUseCase = require('../DeleteCommentUseCase');
@@ -26,7 +27,9 @@ describe('DeleteCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
     const mockCommentRepository = new CommentRepository();
 
-    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue(null);
+    mockThreadRepository.verifyThreadById = jest
+      .fn()
+      .mockRejectedValue(new Error('thread tidak ditemukan'));
 
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
@@ -36,9 +39,8 @@ describe('DeleteCommentUseCase', () => {
     // Assert
     await expect(
       deleteCommentUseCase.execute(useCasePayload)
-    ).rejects.toThrowError(
-      new Error('DELETE_COMMENT_USE_CASE.THREAD_NOT_FOUND')
-    );
+    ).rejects.toThrowError('thread tidak ditemukan');
+    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledTimes(1);
   });
 
   it('should throw error if comment is not found', async () => {
@@ -52,10 +54,10 @@ describe('DeleteCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
     const mockCommentRepository = new CommentRepository();
 
-    mockThreadRepository.verifyThreadById = jest
+    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue(null);
+    mockCommentRepository.verifyCommentByThreadAndCommentId = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ id: 'thread-123' }));
-    mockCommentRepository.findCommentById = jest.fn().mockResolvedValue(null);
+      .mockRejectedValue(new Error('comment tidak ditemukan'));
 
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
@@ -65,9 +67,7 @@ describe('DeleteCommentUseCase', () => {
     // Assert
     await expect(
       deleteCommentUseCase.execute(useCasePayload)
-    ).rejects.toThrowError(
-      new Error('DELETE_COMMENT_USE_CASE.COMMENT_NOT_FOUND')
-    );
+    ).rejects.toThrowError('comment tidak ditemukan');
   });
 
   it('should throw error if comment id, owner or thread id is not string', async () => {
@@ -99,14 +99,15 @@ describe('DeleteCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
 
     // Mocking
-    mockCommentRepository.findCommentById = jest
-      .fn()
-      .mockImplementation(() =>
-        Promise.resolve({ id: 'comment-123', owner: 'user-123' })
-      );
     mockThreadRepository.verifyThreadById = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ id: 'thread-123' }));
+      .mockImplementation(() => Promise.resolve());
+    mockCommentRepository.verifyCommentByThreadAndCommentId = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve());
+    mockCommentRepository.verifyCommentOwner = jest
+      .fn()
+      .mockRejectedValue(new AuthorizationError());
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
       threadRepository: mockThreadRepository,
@@ -115,13 +116,12 @@ describe('DeleteCommentUseCase', () => {
     // Action and Assert
     await expect(
       deleteCommentUseCase.execute(useCasePayload)
-    ).rejects.toThrowError('DELETE_COMMENT_USE_CASE.FORBIDDEN_AUTHORIZATION');
-    expect(mockCommentRepository.findCommentById).toHaveBeenCalledWith(
-      useCasePayload
-    );
-    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledWith(
-      useCasePayload
-    );
+    ).rejects.toThrowError(AuthorizationError);
+    expect(mockCommentRepository.verifyCommentOwner).toHaveBeenCalledTimes(1);
+    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledTimes(1);
+    expect(
+      mockCommentRepository.verifyCommentByThreadAndCommentId
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('should orchestrating the delete comment action correctly', async () => {
@@ -136,19 +136,12 @@ describe('DeleteCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
 
     // Mocking
-    mockCommentRepository.findCommentById = jest
+    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue();
+    mockCommentRepository.verifyCommentByThreadAndCommentId = jest
       .fn()
-      .mockImplementation(() =>
-        Promise.resolve({ id: 'comment-123', owner: 'user-123' })
-      );
-
-    mockCommentRepository.deleteCommentById = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve());
-
-    mockThreadRepository.verifyThreadById = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({ id: 'thread-123' }));
+      .mockResolvedValue();
+    mockCommentRepository.verifyCommentOwner = jest.fn().mockResolvedValue();
+    mockCommentRepository.deleteCommentById = jest.fn().mockResolvedValue();
 
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
@@ -159,14 +152,18 @@ describe('DeleteCommentUseCase', () => {
     await deleteCommentUseCase.execute(useCasePayload);
 
     // Assert
-    expect(mockCommentRepository.findCommentById).toHaveBeenCalledWith(
-      useCasePayload
-    );
-    expect(mockCommentRepository.deleteCommentById).toHaveBeenCalledWith(
-      useCasePayload
-    );
-    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledWith(
-      useCasePayload
-    );
+    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledWith({
+      threadId: useCasePayload.threadId,
+    });
+    expect(
+      mockCommentRepository.verifyCommentByThreadAndCommentId
+    ).toHaveBeenCalledWith(useCasePayload);
+    expect(mockCommentRepository.verifyCommentOwner).toHaveBeenCalledWith({
+      commentId: useCasePayload.commentId,
+      owner: useCasePayload.owner,
+    });
+    expect(mockCommentRepository.deleteCommentById).toHaveBeenCalledWith({
+      commentId: useCasePayload.commentId,
+    });
   });
 });

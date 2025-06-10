@@ -33,7 +33,7 @@ describe('AddCommentUseCase', () => {
     // Assert
     await expect(
       addCommentUseCase.execute(useCasePayload)
-    ).rejects.toThrowError(new Error('ADD_COMMENT_USE_CASE.THREAD_NOT_FOUND'));
+    ).rejects.toThrowError(Error);
   });
 
   it('should orchestrating the add comment action correctly', async () => {
