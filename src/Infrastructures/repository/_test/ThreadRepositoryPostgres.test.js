@@ -5,6 +5,8 @@ const NewThread = require('../../../Domains/thread/entities/NewThread');
 const AddedThread = require('../../../Domains/thread/entities/AddedThread');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
+const InvariantError = require('../../../Commons/exceptions/InvariantError');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 
 describe('ThreadRepositoryPostgres', () => {
   beforeEach(async () => {
@@ -75,30 +77,37 @@ describe('ThreadRepositoryPostgres', () => {
   });
 
   describe('verifyThreadById function', () => {
-    it('should return id of thread correctly', async () => {
+    it('should not throw error if thread was found', async () => {
       // Arrange
       const requestPayload = {
         threadId: 'thread-123',
       };
 
-      const fakeIdGenerator = () => '123';
-      const threadRepositoryPostgres = new ThreadRepositoryPostgres(
-        pool,
-        fakeIdGenerator
-      );
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, {});
 
       await ThreadsTableTestHelper.addThread({
         id: requestPayload.id,
         owner: 'user-123',
       });
 
-      // Action
-      const threadId = await threadRepositoryPostgres.verifyThreadById(
-        requestPayload
-      );
+      // Action and Assert
+      await expect(
+        threadRepositoryPostgres.verifyThreadById(requestPayload)
+      ).resolves.not.toThrowError(NotFoundError);
+    });
 
-      // Assert
-      expect(threadId.id).toEqual(requestPayload.threadId);
+    it('should throw NotFoundError when thread was not found', async () => {
+      // Arrange
+      const requestPayload = {
+        threadId: 'thread-123',
+      };
+
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, {});
+
+      // Action and Assert
+      await expect(
+        threadRepositoryPostgres.verifyThreadById(requestPayload)
+      ).rejects.toThrowError(NotFoundError);
     });
   });
 
