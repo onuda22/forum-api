@@ -50,6 +50,18 @@ DomainErrorTranslator._directories = {
   'GET_DETAIL_THREAD_USE_CASE.THREAD_NOT_FOUND': new NotFoundError(
     'thread tidak ditemukan, threadId invalid'
   ),
+  'REPLY.NOT_CONTAIN_NEEDED_PROPERTY': new InvariantError(
+    'tidak dapat membuat object: properti yang dibutuhkan tidak ada'
+  ),
+  'REPLY.NOT_MEET_DATA_TYPE_SPECIFICATION': new InvariantError(
+    'tidak dapat membuat object: tipe data tidak sesuai'
+  ),
+  'DELETE_REPLY_USE_CASE.NOT_CONTAIN_NEEDED_PROPERTY': new InvariantError(
+    'use_case: property yang dibutuhkan tidak ada'
+  ),
+  'DELETE_REPLY_USE_CASE.NOT_MEET_DATA_TYPE_SPECIFICATION': new InvariantError(
+    'use_case: tipe data tidak sesuai'
+  ),
 };
 
 module.exports = DomainErrorTranslator;
