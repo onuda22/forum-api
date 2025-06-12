@@ -1,5 +1,6 @@
 const DetailComment = require('../../Domains/comments/entities/DetailComment');
 const DetailThread = require('../../Domains/thread/entities/DetailThread');
+const DetailReply = require('../../Domains/reply/entities/DetailReply');
 
 class GetDetailThreadUseCase {
   constructor({ threadRepository }) {
@@ -16,8 +17,32 @@ class GetDetailThreadUseCase {
       payload
     );
 
-    const comments = getComments.map((element) => {
-      return new DetailComment(element);
+    const commentIds = getComments.map((e) => e.id);
+
+    const getReplies = await this._threadRepository.getRepliesByCommentId({
+      commentIds,
+    });
+
+    // Grouping replies
+    const mapReplies = {};
+    for (const reply of getReplies) {
+      if (!mapReplies[reply.commentId]) {
+        mapReplies[reply.commentId] = [];
+      }
+      mapReplies[reply.commentId].push(
+        new DetailReply({
+          ...reply,
+          date: new Date(reply.date).toISOString(),
+        })
+      );
+    }
+
+    // Mapping replies to comment
+    const comments = getComments.map((comment) => {
+      return new DetailComment({
+        ...comment,
+        replies: mapReplies[comment.id] || [],
+      });
     });
 
     const detailThread = new DetailThread({

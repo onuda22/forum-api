@@ -20,6 +20,7 @@ describe('A DetailReply Entity', () => {
       content: [],
       username: 123,
       date: {},
+      isDeleted: 'true',
     };
 
     // Action and Assert
@@ -35,19 +36,40 @@ describe('A DetailReply Entity', () => {
       content: 'content',
       username: 'Usertesting',
       date: '2025-06-10T15:26:54.252Z',
+      isDeleted: false,
     };
 
     // Action
     const detailReply = new DetailReply(payload);
 
     // Assert
-    expect(detailReply).toStrictEqual(
-      new DetailReply({
-        id: payload.id,
-        content: payload.content,
-        username: payload.username,
-        date: payload.date,
-      })
-    );
+    expect(detailReply).toEqual({
+      id: payload.id,
+      content: payload.content,
+      username: payload.username,
+      date: payload.date,
+    });
+  });
+
+  it('should replace content with **balasan telah dihapus** if isDeleted equal true', () => {
+    // Arrange
+    const payload = {
+      id: 'reply-123',
+      content: 'content',
+      username: 'Usertesting',
+      date: '2025-06-10T15:26:54.252Z',
+      isDeleted: true,
+    };
+
+    // Action
+    const detailReply = new DetailReply(payload);
+
+    // Assert
+    expect(detailReply).toEqual({
+      id: payload.id,
+      content: '**balasan telah dihapus**',
+      username: payload.username,
+      date: payload.date,
+    });
   });
 });

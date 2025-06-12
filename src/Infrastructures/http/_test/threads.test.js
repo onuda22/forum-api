@@ -5,9 +5,11 @@ const pool = require('../../database/postgres/pool');
 const createServer = require('../createServer');
 const container = require('../../container');
 const CommentTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
+const RepliesTableTestHelper = require('../../../../tests/RepliesTableTestHelper');
 
 describe('/threads endpoint', () => {
   afterEach(async () => {
+    await RepliesTableTestHelper.cleanTable();
     await CommentTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
@@ -160,6 +162,17 @@ describe('/threads endpoint', () => {
         owner: 'user-123',
         threadId: 'thread-X123',
       });
+      await RepliesTableTestHelper.addReply({
+        id: 'reply-A-123',
+        owner: 'user-123',
+        commentId: 'comment-123',
+        isDeleted: true,
+      });
+      await RepliesTableTestHelper.addReply({
+        id: 'reply-B-123',
+        owner: 'user-234',
+        commentId: 'comment-234',
+      });
       const requestParams = {
         threadId: 'thread-X123',
       };
@@ -182,6 +195,18 @@ describe('/threads endpoint', () => {
       expect(responseJson.data.thread.comments).toBeInstanceOf(Array);
       expect(responseJson.data.thread.comments[0].content).toEqual(
         '**komentar telah dihapus**'
+      );
+      expect(responseJson.data.thread.comments[0].replies).toBeDefined();
+      expect(responseJson.data.thread.comments[1].replies).toBeDefined();
+      expect(responseJson.data.thread.comments[0].replies).toBeInstanceOf(
+        Array
+      );
+      expect(responseJson.data.thread.comments[1].replies).toBeInstanceOf(
+        Array
+      );
+      expect(responseJson.data.thread.comments[0].replies[0]).toBeDefined();
+      expect(responseJson.data.thread.comments[0].replies[0].content).toEqual(
+        '**balasan telah dihapus**'
       );
     });
     it('should response 404 when threadId invalid', async () => {

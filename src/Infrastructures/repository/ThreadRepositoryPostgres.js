@@ -53,6 +53,7 @@ class ThreadRepositoryPostgres extends ThreadRepository {
     };
 
     const result = await this._pool.query(query);
+
     return result.rows[0];
   }
 
@@ -69,6 +70,27 @@ class ThreadRepositoryPostgres extends ThreadRepository {
              WHERE c.thread_id = $1
              ORDER BY date ASC`,
       values: [threadId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result.rows;
+  }
+
+  async getRepliesByCommentId(requestPayload) {
+    const { commentIds } = requestPayload;
+    const query = {
+      text: `SELECT r.id,
+                    u.username,
+                    r.created_at AS date,
+                    r.content,
+                    r.comment_id AS "commentId",
+                    r.is_deleted AS "isDeleted"
+             FROM replies r
+             INNER JOIN users u ON u.id = r.owner
+             WHERE r.comment_id = ANY($1::text[])
+             ORDER BY date ASC`,
+      values: [commentIds],
     };
 
     const result = await this._pool.query(query);
