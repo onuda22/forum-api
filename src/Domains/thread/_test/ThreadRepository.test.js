@@ -15,13 +15,5 @@ describe('ThreadRepository interface', () => {
     await expect(threadRepository.verifyThreadById('')).rejects.toThrowError(
       'THREAD_REPOSITORY.METHOD_NOT_IMPLEMENTED'
     );
-    await expect(
-      threadRepository.getCommentsByThreadId('')
-    ).rejects.toThrowError('THREAD_REPOSITORY.METHOD_NOT_IMPLEMENTED');
-    await expect(
-      threadRepository.getRepliesByCommentId('')
-    ).rejects.toThrowError(
-      'THREAD_REPOSITORY.GET_REPLIES_METHOD_NOT_IMPLEMENTED'
-    );
   });
 });

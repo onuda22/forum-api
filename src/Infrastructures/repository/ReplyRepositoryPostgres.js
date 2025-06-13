@@ -63,6 +63,27 @@ class ReplyRepositoryPostgres extends ReplyRepository {
       throw new NotFoundError('reply tidak ditemukan');
     }
   }
+
+  async getRepliesByCommentId(requestPayload) {
+    const { commentIds } = requestPayload;
+    const query = {
+      text: `SELECT r.id,
+                    u.username,
+                    r.created_at AS date,
+                    r.content,
+                    r.comment_id AS "commentId",
+                    r.is_deleted AS "isDeleted"
+             FROM replies r
+             INNER JOIN users u ON u.id = r.owner
+             WHERE r.comment_id = ANY($1::text[])
+             ORDER BY date ASC`,
+      values: [commentIds],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result.rows;
+  }
 }
 
 module.exports = ReplyRepositoryPostgres;

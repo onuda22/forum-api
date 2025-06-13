@@ -5,7 +5,6 @@ const NewThread = require('../../../Domains/thread/entities/NewThread');
 const AddedThread = require('../../../Domains/thread/entities/AddedThread');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
-const InvariantError = require('../../../Commons/exceptions/InvariantError');
 const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 const RepliesTableTestHelper = require('../../../../tests/RepliesTableTestHelper');
 
@@ -126,112 +125,25 @@ describe('ThreadRepositoryPostgres', () => {
       await ThreadsTableTestHelper.addThread({
         id: requestPayload.threadId,
         owner: 'user-123',
+        createdAt: '2025-06-13T16:17:44.117Z',
       });
 
       // Action
       const thread = await threadRepositoryPostgres.getThreadById(
         requestPayload
       );
+      const getThreadHelper = await ThreadsTableTestHelper.findThreadById(
+        requestPayload.threadId
+      );
+      const getUsername = await UsersTableTestHelper.findUsersById('user-123');
 
       // Assert
       expect(thread).toBeDefined();
-      expect(thread.id).toEqual(requestPayload.threadId);
-    });
-  });
-
-  describe('getCommentsByThreadId function', () => {
-    it('should return comments of thread correctly', async () => {
-      // Arrange
-      const requestPayload = {
-        threadId: 'thread-123',
-      };
-
-      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, {});
-
-      // Add User, Thread and comments
-      await UsersTableTestHelper.addUser({
-        id: 'user-test',
-        username: 'testing',
-      });
-      await UsersTableTestHelper.addUser({
-        id: 'user-comment',
-        username: 'testComment',
-      });
-      await ThreadsTableTestHelper.addThread({
-        id: requestPayload.threadId,
-        owner: 'user-test',
-      });
-      await CommentsTableTestHelper.addComment({
-        id: 'comment-123',
-        owner: 'user-comment',
-        threadId: requestPayload.threadId,
-      });
-
-      // Action
-      const comments = await threadRepositoryPostgres.getCommentsByThreadId(
-        requestPayload
-      );
-
-      // Assert
-      expect(comments).toBeDefined;
-      expect(comments).toBeInstanceOf(Array);
-      expect(comments).toHaveLength(1);
-      expect(comments[0].id).toEqual('comment-123');
-    });
-  });
-
-  describe('getRepliesByCommentId function', () => {
-    it('should return replies of comments of thread correctly', async () => {
-      // Arrange
-      const requestPayload = {
-        threadId: 'thread-123',
-        commentIds: ['comment-123'],
-      };
-
-      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, {});
-
-      // Add User, Thread, Comments and Replies
-      await UsersTableTestHelper.addUser({
-        id: 'user-test',
-        username: 'testing',
-      });
-      await UsersTableTestHelper.addUser({
-        id: 'user-comment',
-        username: 'testComment',
-      });
-      await ThreadsTableTestHelper.addThread({
-        id: requestPayload.threadId,
-        owner: 'user-test',
-      });
-      await CommentsTableTestHelper.addComment({
-        id: requestPayload.commentIds[0],
-        owner: 'user-comment',
-        threadId: requestPayload.threadId,
-      });
-      await RepliesTableTestHelper.addReply({
-        id: 'reply-A-123',
-        owner: 'user-test',
-        commentId: requestPayload.commentIds[0],
-        isDeleted: true,
-      });
-      await RepliesTableTestHelper.addReply({
-        id: 'reply-B-123',
-        owner: 'user-comment',
-        commentId: requestPayload.commentIds[0],
-        isDeleted: false,
-      });
-
-      // Action
-      const replies = await threadRepositoryPostgres.getRepliesByCommentId(
-        requestPayload
-      );
-
-      // Assert
-      expect(replies).toBeDefined;
-      expect(replies).toBeInstanceOf(Array);
-      expect(replies).toHaveLength(2);
-      expect(replies[0].id).toEqual('reply-A-123');
-      expect(replies[1].id).toEqual('reply-B-123');
+      expect(thread.id).toEqual(getThreadHelper[0].id);
+      expect(thread.title).toEqual(getThreadHelper[0].title);
+      expect(thread.body).toEqual(getThreadHelper[0].body);
+      expect(thread.date).toEqual(getThreadHelper[0].created_at);
+      expect(thread.username).toEqual(getUsername[0].username);
     });
   });
 });

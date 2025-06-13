@@ -3,6 +3,8 @@ const DetailThread = require('../../../Domains/thread/entities/DetailThread');
 const DetailComment = require('../../../Domains/comments/entities/DetailComment');
 const DetailReply = require('../../../Domains/reply/entities/DetailReply');
 const ThreadRepository = require('../../../Domains/thread/ThreadRepository');
+const CommentRepository = require('../../../Domains/comments/CommentRepository');
+const ReplyRepository = require('../../../Domains/reply/ReplyRepository');
 
 describe('GetDetailThreadUseCase', () => {
   it('should throw error when thread not found', async () => {
@@ -73,46 +75,78 @@ describe('GetDetailThreadUseCase', () => {
     ];
 
     const mockThreadRepository = new ThreadRepository();
+    const mockCommentRepository = new CommentRepository();
+    const mockReplyRepository = new ReplyRepository();
 
     // Mocking
-    mockThreadRepository.getThreadById = jest
+    mockThreadRepository.getThreadById = jest.fn().mockResolvedValue(getThread);
+    mockCommentRepository.getCommentsByThreadId = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(getThread));
-    mockThreadRepository.getCommentsByThreadId = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(getComments));
-    mockThreadRepository.getRepliesByCommentId = jest
+      .mockResolvedValue(getComments);
+    mockReplyRepository.getRepliesByCommentId = jest
       .fn()
       .mockResolvedValue(getReplies);
 
     const getDetailThreadUseCase = new GetDetailThreadUseCase({
       threadRepository: mockThreadRepository,
+      commentRepository: mockCommentRepository,
+      replyRepository: mockReplyRepository,
     });
 
     // Action
     const result = await getDetailThreadUseCase.execute(useCasePayload);
 
     // Assert
+    // Assert Thread Value
     expect(result).toBeInstanceOf(DetailThread);
-    expect(result.id).toEqual(useCasePayload.threadId);
+    expect(result.id).toEqual(getThread.id);
+    expect(result.title).toEqual(getThread.title);
+    expect(result.body).toEqual(getThread.body);
+    expect(result.date).toEqual(getThread.date);
+    expect(result.username).toEqual(getThread.username);
+
+    // Assert Comments Value
     expect(result.comments).toHaveLength(1);
     expect(result.comments[0]).toBeDefined();
     expect(result.comments[0]).toBeInstanceOf(DetailComment);
-    expect(mockThreadRepository.getThreadById).toHaveBeenCalledWith(
-      useCasePayload
-    );
-    expect(mockThreadRepository.getCommentsByThreadId).toHaveBeenCalledWith(
-      useCasePayload
-    );
+    expect(result.comments[0].id).toEqual(getComments[0].id);
+    expect(result.comments[0].username).toEqual(getComments[0].username);
+    expect(result.comments[0].date).toEqual(getComments[0].date);
+    expect(result.comments[0].content).toEqual(getComments[0].content);
+
+    // Assert Replies Value
     expect(result.comments[0].replies).toHaveLength(2);
+    // First Reply
     expect(result.comments[0].replies[0]).toBeDefined();
-    expect(result.comments[0].replies[1]).toBeDefined();
     expect(result.comments[0].replies[0]).toBeInstanceOf(DetailReply);
-    expect(result.comments[0].replies[1]).toBeInstanceOf(DetailReply);
+    expect(result.comments[0].replies[0].id).toEqual(getReplies[0].id);
+    expect(result.comments[0].replies[0].date).toEqual(getReplies[0].date);
+    expect(result.comments[0].replies[0].username).toEqual(
+      getReplies[0].username
+    );
     expect(result.comments[0].replies[0].content).toEqual(
       '**balasan telah dihapus**'
     );
-    expect(mockThreadRepository.getRepliesByCommentId).toHaveBeenCalledWith({
+    //Second Reply
+    expect(result.comments[0].replies[1]).toBeDefined();
+    expect(result.comments[0].replies[1]).toBeInstanceOf(DetailReply);
+    expect(result.comments[0].replies[1].id).toEqual(getReplies[1].id);
+    expect(result.comments[0].replies[1].date).toEqual(getReplies[1].date);
+    expect(result.comments[0].replies[1].username).toEqual(
+      getReplies[1].username
+    );
+    expect(result.comments[0].replies[1].content).toEqual(
+      getReplies[1].content
+    );
+
+    // Make sure repo was called with exact value
+    expect(mockThreadRepository.getThreadById).toHaveBeenCalledWith(
+      useCasePayload
+    );
+    expect(mockCommentRepository.getCommentsByThreadId).toHaveBeenCalledWith(
+      useCasePayload
+    );
+    expect(mockReplyRepository.getRepliesByCommentId).toHaveBeenCalledWith({
       commentIds: [getComments[0].id],
     });
   });

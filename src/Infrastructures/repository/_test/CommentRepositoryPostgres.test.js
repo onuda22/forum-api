@@ -212,4 +212,54 @@ describe('CommentRepositoryPostgres', () => {
       ).resolves.not.toThrow(AuthorizationError);
     });
   });
+
+  describe('getCommentsByThreadId function', () => {
+    it('should return comments of thread correctly', async () => {
+      // Arrange
+      const requestPayload = {
+        threadId: 'threadX-123',
+      };
+
+      const threadRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Add User, Thread and comments
+      await UsersTableTestHelper.addUser({
+        id: 'user-test',
+        username: 'testing',
+      });
+      await UsersTableTestHelper.addUser({
+        id: 'user-comment',
+        username: 'testComment',
+      });
+      await ThreadsTableTestHelper.addThread({
+        id: requestPayload.threadId,
+        owner: 'user-test',
+      });
+      await CommentsTableTestHelper.addComment({
+        id: 'comment-123',
+        owner: 'user-comment',
+        threadId: requestPayload.threadId,
+      });
+
+      // Action
+      const comments = await threadRepositoryPostgres.getCommentsByThreadId(
+        requestPayload
+      );
+
+      // Assert
+      const getComment = await CommentsTableTestHelper.findCommentsById(
+        'comment-123'
+      );
+      const getUser = await UsersTableTestHelper.findUsersById('user-comment');
+
+      expect(comments).toBeDefined;
+      expect(comments).toBeInstanceOf(Array);
+      expect(comments).toHaveLength(1);
+      expect(comments[0].id).toEqual(getComment[0].id);
+      expect(comments[0].username).toEqual(getUser[0].username);
+      expect(comments[0].date).toEqual(getComment[0].created_at);
+      expect(comments[0].content).toEqual(getComment[0].content);
+      expect(comments[0].isDeleted).toEqual(getComment[0].is_deleted);
+    });
+  });
 });

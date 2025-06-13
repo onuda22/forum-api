@@ -22,7 +22,7 @@ describe('AddCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
 
     // Action
-    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue(null);
+    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue();
 
     // create comment use case instance
     const addCommentUseCase = new AddCommentUseCase({

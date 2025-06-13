@@ -3,8 +3,10 @@ const DetailThread = require('../../Domains/thread/entities/DetailThread');
 const DetailReply = require('../../Domains/reply/entities/DetailReply');
 
 class GetDetailThreadUseCase {
-  constructor({ threadRepository }) {
+  constructor({ threadRepository, commentRepository, replyRepository }) {
     this._threadRepository = threadRepository;
+    this._commentRepository = commentRepository;
+    this._replyRepository = replyRepository;
   }
 
   async execute(payload) {
@@ -13,13 +15,13 @@ class GetDetailThreadUseCase {
       throw new Error('GET_DETAIL_THREAD_USE_CASE.THREAD_NOT_FOUND');
     }
 
-    const getComments = await this._threadRepository.getCommentsByThreadId(
+    const getComments = await this._commentRepository.getCommentsByThreadId(
       payload
     );
 
     const commentIds = getComments.map((e) => e.id);
 
-    const getReplies = await this._threadRepository.getRepliesByCommentId({
+    const getReplies = await this._replyRepository.getRepliesByCommentId({
       commentIds,
     });
 

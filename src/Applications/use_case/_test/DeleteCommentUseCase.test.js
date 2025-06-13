@@ -1,4 +1,3 @@
-const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const ThreadRepository = require('../../../Domains/thread/ThreadRepository');
 const DeleteCommentUseCase = require('../DeleteCommentUseCase');
@@ -54,7 +53,7 @@ describe('DeleteCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
     const mockCommentRepository = new CommentRepository();
 
-    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue(null);
+    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue();
     mockCommentRepository.verifyCommentByThreadAndCommentId = jest
       .fn()
       .mockRejectedValue(new Error('comment tidak ditemukan'));
@@ -99,15 +98,13 @@ describe('DeleteCommentUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
 
     // Mocking
-    mockThreadRepository.verifyThreadById = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve());
+    mockThreadRepository.verifyThreadById = jest.fn().mockResolvedValue();
     mockCommentRepository.verifyCommentByThreadAndCommentId = jest
       .fn()
-      .mockImplementation(() => Promise.resolve());
+      .mockResolvedValue();
     mockCommentRepository.verifyCommentOwner = jest
       .fn()
-      .mockRejectedValue(new AuthorizationError());
+      .mockRejectedValue(new Error());
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
       threadRepository: mockThreadRepository,
@@ -116,7 +113,7 @@ describe('DeleteCommentUseCase', () => {
     // Action and Assert
     await expect(
       deleteCommentUseCase.execute(useCasePayload)
-    ).rejects.toThrowError(AuthorizationError);
+    ).rejects.toThrowError(Error);
     expect(mockCommentRepository.verifyCommentOwner).toHaveBeenCalledTimes(1);
     expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledTimes(1);
     expect(

@@ -194,4 +194,78 @@ describe('ReplyRepositoryPostgres', () => {
       ).resolves.not.toThrowError(NotFoundError);
     });
   });
+
+  describe('getRepliesByCommentId function', () => {
+    it('should return replies of comments of thread correctly', async () => {
+      // Arrange
+      const requestPayload = {
+        threadId: 'threadX-123',
+        commentIds: ['commentX-123'],
+      };
+
+      const threadRepositoryPostgres = new ReplyRepositoryPostgres(pool, {});
+
+      // Add User, Thread, Comments and Replies
+      await UsersTableTestHelper.addUser({
+        id: 'user-test',
+        username: 'testing',
+      });
+      await UsersTableTestHelper.addUser({
+        id: 'user-comment',
+        username: 'testComment',
+      });
+      await ThreadsTableTestHelper.addThread({
+        id: requestPayload.threadId,
+        owner: 'user-test',
+      });
+      await CommentTableTestHelper.addComment({
+        id: requestPayload.commentIds[0],
+        owner: 'user-comment',
+        threadId: requestPayload.threadId,
+      });
+      await RepliesTableTestHelper.addReply({
+        id: 'reply-A-123',
+        owner: 'user-test',
+        commentId: requestPayload.commentIds[0],
+        isDeleted: true,
+      });
+      await RepliesTableTestHelper.addReply({
+        id: 'reply-B-123',
+        owner: 'user-comment',
+        commentId: requestPayload.commentIds[0],
+        isDeleted: false,
+      });
+
+      // Action
+      const replies = await threadRepositoryPostgres.getRepliesByCommentId(
+        requestPayload
+      );
+
+      // Assert
+      const getUserA = await UsersTableTestHelper.findUsersById('user-test');
+      const getUserB = await UsersTableTestHelper.findUsersById('user-comment');
+      const replyA = await RepliesTableTestHelper.findReplyById('reply-A-123');
+      const replyB = await RepliesTableTestHelper.findReplyById('reply-B-123');
+
+      expect(replies).toBeDefined;
+      expect(replies).toBeInstanceOf(Array);
+      expect(replies).toHaveLength(2);
+
+      // First Reply
+      expect(replies[0].id).toEqual('reply-A-123');
+      expect(replies[0].username).toEqual(getUserA[0].username);
+      expect(replies[0].content).toEqual(replyA[0].content);
+      expect(replies[0].date).toEqual(replyA[0].created_at);
+      expect(replies[0].commentId).toEqual(replyA[0].comment_id);
+      expect(replies[0].isDeleted).toEqual(replyA[0].is_deleted);
+
+      // Second Reply
+      expect(replies[1].id).toEqual('reply-B-123');
+      expect(replies[1].username).toEqual(getUserB[0].username);
+      expect(replies[1].content).toEqual(replyB[0].content);
+      expect(replies[1].date).toEqual(replyB[0].created_at);
+      expect(replies[1].commentId).toEqual(replyB[0].comment_id);
+      expect(replies[1].isDeleted).toEqual(replyB[0].is_deleted);
+    });
+  });
 });
