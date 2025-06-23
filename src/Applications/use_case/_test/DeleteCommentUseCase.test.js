@@ -40,6 +40,9 @@ describe('DeleteCommentUseCase', () => {
       deleteCommentUseCase.execute(useCasePayload)
     ).rejects.toThrowError('thread tidak ditemukan');
     expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledTimes(1);
+    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledWith({
+      threadId: useCasePayload.threadId,
+    });
   });
 
   it('should throw error if comment is not found', async () => {
@@ -67,6 +70,12 @@ describe('DeleteCommentUseCase', () => {
     await expect(
       deleteCommentUseCase.execute(useCasePayload)
     ).rejects.toThrowError('comment tidak ditemukan');
+    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledWith({
+      threadId: useCasePayload.threadId,
+    });
+    expect(
+      mockCommentRepository.verifyCommentByThreadAndCommentId
+    ).toHaveBeenCalledWith(useCasePayload);
   });
 
   it('should throw error if comment id, owner or thread id is not string', async () => {
@@ -105,6 +114,7 @@ describe('DeleteCommentUseCase', () => {
     mockCommentRepository.verifyCommentOwner = jest
       .fn()
       .mockRejectedValue(new Error());
+    
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
       threadRepository: mockThreadRepository,
@@ -119,6 +129,17 @@ describe('DeleteCommentUseCase', () => {
     expect(
       mockCommentRepository.verifyCommentByThreadAndCommentId
     ).toHaveBeenCalledTimes(1);
+    
+    expect(mockCommentRepository.verifyCommentOwner).toHaveBeenCalledWith({
+      commentId: useCasePayload.commentId,
+      owner: useCasePayload.owner,
+    });
+    expect(mockThreadRepository.verifyThreadById).toHaveBeenCalledWith({
+      threadId: useCasePayload.threadId,
+    });
+    expect(
+      mockCommentRepository.verifyCommentByThreadAndCommentId
+    ).toHaveBeenCalledWith(useCasePayload);
   });
 
   it('should orchestrating the delete comment action correctly', async () => {

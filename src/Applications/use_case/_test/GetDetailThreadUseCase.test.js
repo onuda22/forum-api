@@ -53,6 +53,13 @@ describe('GetDetailThreadUseCase', () => {
         content: 'this is content',
         isDeleted: false,
       },
+      {
+        id: 'comment-B-123',
+        username: 'testing',
+        date: '2021-08-08T07:22:33.555Z',
+        content: 'this is deleted content',
+        isDeleted: true
+      }
     ];
 
     const getReplies = [
@@ -106,13 +113,22 @@ describe('GetDetailThreadUseCase', () => {
     expect(result.username).toEqual(getThread.username);
 
     // Assert Comments Value
-    expect(result.comments).toHaveLength(1);
+    expect(result.comments).toHaveLength(2);
     expect(result.comments[0]).toBeDefined();
     expect(result.comments[0]).toBeInstanceOf(DetailComment);
     expect(result.comments[0].id).toEqual(getComments[0].id);
     expect(result.comments[0].username).toEqual(getComments[0].username);
     expect(result.comments[0].date).toEqual(getComments[0].date);
     expect(result.comments[0].content).toEqual(getComments[0].content);
+
+    expect(result.comments[1]).toBeDefined();
+    expect(result.comments[1]).toBeInstanceOf(DetailComment);
+    expect(result.comments[1].id).toEqual(getComments[1].id);
+    expect(result.comments[1].username).toEqual(getComments[1].username);
+    expect(result.comments[1].date).toEqual(getComments[1].date);
+    expect(result.comments[1].content).toEqual('**komentar telah dihapus**');
+    expect(result.comments[1].replies).toEqual([]);
+    expect(result.comments[1].replies).toBeInstanceOf(Array)
 
     // Assert Replies Value
     expect(result.comments[0].replies).toHaveLength(2);
@@ -147,7 +163,7 @@ describe('GetDetailThreadUseCase', () => {
       useCasePayload
     );
     expect(mockReplyRepository.getRepliesByCommentId).toHaveBeenCalledWith({
-      commentIds: [getComments[0].id],
+      commentIds: getComments.map(comment => comment.id),
     });
   });
 });

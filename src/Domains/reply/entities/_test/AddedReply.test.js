@@ -39,12 +39,9 @@ describe('A AddedReply Entity', () => {
     const addedReply = new AddedReply(payload);
 
     // Assert
-    expect(addedReply).toStrictEqual(
-      new AddedReply({
-        id: payload.id,
-        content: payload.content,
-        owner: payload.owner,
-      })
+    expect(addedReply.id).toStrictEqual(payload.id
     );
+    expect(addedReply.content).toStrictEqual(payload.content);
+    expect(addedReply.owner).toStrictEqual(payload.owner);
   });
 });

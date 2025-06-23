@@ -32,6 +32,13 @@ describe('AddReplyUseCase', () => {
     await expect(addReplyUseCase.execute(useCasePayload)).rejects.toThrowError(
       Error
     );
+    
+    expect(
+      mockCommentRepository.verifyCommentByThreadAndCommentId
+    ).toBeCalledWith({
+      threadId: useCasePayload.threadId,
+      commentId: useCasePayload.commentId,
+    });
   });
 
   it('should orchestrating the add reply action correctly', async () => {

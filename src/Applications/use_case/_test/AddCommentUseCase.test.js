@@ -34,6 +34,7 @@ describe('AddCommentUseCase', () => {
     await expect(
       addCommentUseCase.execute(useCasePayload)
     ).rejects.toThrowError(Error);
+    expect(mockThreadRepository.verifyThreadById).toBeCalledWith({threadId: useCasePayload.threadId})
   });
 
   it('should orchestrating the add comment action correctly', async () => {
@@ -55,11 +56,9 @@ describe('AddCommentUseCase', () => {
 
     // Mocking
     mockThreadRepository.verifyThreadById = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({ id: 'thread-123' }));
+      .fn().mockResolvedValue();
     mockCommentRepository.addComment = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(mockAddedComment));
+      .fn().mockResolvedValue(mockAddedComment);
 
     // create comment use case instance
     const addCommentUseCase = new AddCommentUseCase({
@@ -86,5 +85,6 @@ describe('AddCommentUseCase', () => {
         threadId: useCasePayload.threadId,
       })
     );
+    expect(mockThreadRepository.verifyThreadById).toBeCalledWith({threadId: useCasePayload.threadId});
   });
 });
