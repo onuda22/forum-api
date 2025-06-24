@@ -64,7 +64,7 @@ const createServer = async (container) => {
     method: 'GET',
     path: '/',
     handler: () => ({
-      value: 'Hello world! This FORUM BACKEND API V2',
+      value: 'Hello world! This is FORUM BACKEND API V2',
     }),
   });
 
