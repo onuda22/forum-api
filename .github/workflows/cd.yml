@@ -15,12 +15,12 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             bash -l -c '
               export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v18.20.8/bin &&
-              cd ~/forumapi &&
+              cd ~/forum-api &&
               git pull origin main &&
               npm install &&
               npm run migrate up &&
