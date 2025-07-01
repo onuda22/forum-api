@@ -19,6 +19,7 @@ exports.up = (pgm) => {
     foreignKeys: {
       columns: "user_id",
       references: "users(id)",
+      onDelete: "CASCADE",
     },
   });
 
@@ -26,6 +27,7 @@ exports.up = (pgm) => {
     foreignKeys: {
       columns: "comment_id",
       references: "comments(id)",
+      onDelete: "CASCADE",
     },
   });
 
