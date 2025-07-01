@@ -12,5 +12,8 @@ describe("A CommentLikeRepository interface", () => {
     await expect(repository.deleteCommentLike("")).rejects.toThrowError(
       "COMMENT_LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED"
     );
+    await expect(repository.checkCommentLike("")).rejects.toThrowError(
+      "COMMENT_LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED"
+    );
   });
 });
