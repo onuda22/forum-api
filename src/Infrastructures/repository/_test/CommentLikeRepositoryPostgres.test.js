@@ -12,6 +12,10 @@ const CommentLike = require("../../../Domains/comment_likes/entities/CommentLike
 describe("CommentLikeRepositoryPostgres", () => {
   beforeAll(async () => {
     await UsersTableTestHelper.addUser({ id: "user-123" });
+    await UsersTableTestHelper.addUser({
+      id: "user-124",
+      username: "test-124",
+    });
     await ThreadsTableTestHelper.addThread({
       id: "thread-123",
       owner: "user-123",
@@ -19,6 +23,16 @@ describe("CommentLikeRepositoryPostgres", () => {
     await CommentsTableTestHelper.addComment({
       id: "comment-123",
       owner: "user-123",
+      threadId: "thread-123",
+    });
+    await CommentsTableTestHelper.addComment({
+      id: "comment-124",
+      owner: "user-124",
+      threadId: "thread-123",
+    });
+    await CommentsTableTestHelper.addComment({
+      id: "comment-125",
+      owner: "user-124",
       threadId: "thread-123",
     });
   });
@@ -75,7 +89,7 @@ describe("CommentLikeRepositoryPostgres", () => {
 
     it("should return true when commentLike was exist", async () => {
       // Arrange
-      CommentLikesTableTestHelper.addLike(commentLike);
+      await CommentLikesTableTestHelper.addLike(commentLike);
 
       // Action
       const result = await repository.checkCommentLike(commentLike);
@@ -93,7 +107,7 @@ describe("CommentLikeRepositoryPostgres", () => {
         commentId: "comment-123",
       });
 
-      CommentLikesTableTestHelper.addLike(commentLike);
+      await CommentLikesTableTestHelper.addLike(commentLike);
 
       const repository = new CommentLikeRepositoryPostgres(pool);
 
@@ -105,6 +119,40 @@ describe("CommentLikeRepositoryPostgres", () => {
         commentLike
       );
       expect(dbCommentLike).toHaveLength(0);
+    });
+  });
+
+  describe("countCommentLikeByCommentId function", () => {
+    it("should return total like on comments", async () => {
+      // Arrange
+      const payload = {
+        commentIds: ["comment-123", "comment-124", "comment-125"],
+      };
+
+      await CommentLikesTableTestHelper.addLike({
+        userId: "user-123",
+        commentId: payload.commentIds[0],
+      });
+      await CommentLikesTableTestHelper.addLike({
+        userId: "user-124",
+        commentId: payload.commentIds[0],
+      });
+      await CommentLikesTableTestHelper.addLike({
+        userId: "user-123",
+        commentId: payload.commentIds[1],
+      });
+
+      const repository = new CommentLikeRepositoryPostgres(pool);
+
+      // Action
+      const result = await repository.countCommentLikeByCommentId(payload);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result).toBeInstanceOf(Object);
+      expect(result[payload.commentIds[0]]).toEqual(2);
+      expect(result[payload.commentIds[1]]).toEqual(1);
+      expect(result[payload.commentIds[2]]).toEqual(0);
     });
   });
 });
