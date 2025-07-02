@@ -15,5 +15,8 @@ describe("A CommentLikeRepository interface", () => {
     await expect(repository.checkCommentLike("")).rejects.toThrowError(
       "COMMENT_LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED"
     );
+    await expect(
+      repository.countCommentLikeByCommentId("")
+    ).rejects.toThrowError("COMMENT_LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED");
   });
 });
