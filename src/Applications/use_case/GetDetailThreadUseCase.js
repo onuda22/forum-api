@@ -1,18 +1,24 @@
-const DetailComment = require('../../Domains/comments/entities/DetailComment');
-const DetailThread = require('../../Domains/thread/entities/DetailThread');
-const DetailReply = require('../../Domains/reply/entities/DetailReply');
+const DetailComment = require("../../Domains/comments/entities/DetailComment");
+const DetailThread = require("../../Domains/thread/entities/DetailThread");
+const DetailReply = require("../../Domains/reply/entities/DetailReply");
 
 class GetDetailThreadUseCase {
-  constructor({ threadRepository, commentRepository, replyRepository }) {
+  constructor({
+    threadRepository,
+    commentRepository,
+    replyRepository,
+    commentLikeRepository,
+  }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
     this._replyRepository = replyRepository;
+    this._commentLikeRepository = commentLikeRepository;
   }
 
   async execute(payload) {
     const thread = await this._threadRepository.getThreadById(payload);
     if (thread === undefined) {
-      throw new Error('GET_DETAIL_THREAD_USE_CASE.THREAD_NOT_FOUND');
+      throw new Error("GET_DETAIL_THREAD_USE_CASE.THREAD_NOT_FOUND");
     }
 
     const getComments = await this._commentRepository.getCommentsByThreadId(
@@ -24,6 +30,11 @@ class GetDetailThreadUseCase {
     const getReplies = await this._replyRepository.getRepliesByCommentId({
       commentIds,
     });
+
+    const getCommentLikes =
+      await this._commentLikeRepository.countCommentLikeByCommentId({
+        commentIds,
+      });
 
     // Grouping replies
     const mapReplies = {};
@@ -43,6 +54,7 @@ class GetDetailThreadUseCase {
     const comments = getComments.map((comment) => {
       return new DetailComment({
         ...comment,
+        likeCount: getCommentLikes[comment.id],
         replies: mapReplies[comment.id] || [],
       });
     });
